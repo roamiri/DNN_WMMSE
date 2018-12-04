@@ -25,10 +25,15 @@ data_file = open("./data/Ytest.pickle","rb")
 Ytest = pickle.load(data_file)
 data_file.close()
 
+for i in range(0, Ytrain.shape[1]):
+    Ytrain[:, i][Ytrain[:, i] < 0.5] = 0.0
+
 training_data = []
 for i in range(0, Xtrain.shape[1]):
     training_data.append((Xtrain[:, i].reshape(100, 1), Ytrain[:, i].reshape(10, 1)))
 
+for i in range(0, Ytest.shape[1]):
+    Ytest[:, i][Ytest[:, i] < 0.5] = 0.0
 
 test_data = []
 for i in range(0, Xtest.shape[1]):
@@ -36,11 +41,11 @@ for i in range(0, Xtest.shape[1]):
 
 
 mini_batch_size = 1000
-training_epochs = 10
-eta=0.1
+training_epochs = 100
+eta=0.01
 lmbda = 10.0
 
-net = network2.Network([K**2, 200, 200, 200, K], cost=network2.QuadraticCost)
+net = network2.Network([K**2, 200, K], cost=network2.QuadraticCost)
 
 net.SGD(training_data, training_epochs, mini_batch_size, eta, lmbda, test_data,
         monitor_evaluation_cost=True,

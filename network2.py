@@ -35,6 +35,8 @@ class QuadraticCost(object):
     @staticmethod
     def delta(z, a, y):
         """Return the error delta from the output layer."""
+        a[a < 0.5] = 0.0
+        a[a >= 0.5] = 1.0
         return (a-y)
 
 
@@ -123,6 +125,8 @@ class Network(object):
         """Return the output of the network if ``a`` is input."""
         for b, w in zip(self.biases, self.weights):
             a = ReLU(np.dot(w, a)+b)
+        a[a < 0.5] = 0.0
+        a[a >= 0.5] = 1.0
         return a
 
     def SGD(self, training_data, epochs, mini_batch_size, eta,
@@ -219,7 +223,7 @@ class Network(object):
         for b, w in zip(self.biases, self.weights):
             z = np.dot(w, activation)+b
             zs.append(z)
-            activation = sigmoid(z)
+            activation = ReLU(z)
             activations.append(activation)
         # backward pass
         delta = (self.cost).delta(zs[-1], activations[-1], y)
@@ -233,7 +237,7 @@ class Network(object):
         # that Python can use negative indices in lists.
         for l in xrange(2, self.num_layers):
             z = zs[-l]
-            sp = sigmoid_prime(z)
+            sp = 1.0
             delta = np.dot(self.weights[-l+1].transpose(), delta) * sp
             nabla_b[-l] = delta
             nabla_w[-l] = np.dot(delta, activations[-l-1].transpose())
@@ -268,11 +272,11 @@ class Network(object):
         else:
             results = [(self.feedforward(x), y)
                         for (x, y) in data]
-        (x, y) = results[0]
-        print('x=')
-        print(x)
-        print('y=')
-        print(y)
+        # (x, y) = results[0]
+        # print('x=')
+        # print(x)
+        # print('y=')
+        # print(y)
         return sum(int(np.array_equiv(x, y)) for (x, y) in results)
 
     def total_cost(self, data, lmbda, convert=False):

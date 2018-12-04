@@ -1,10 +1,10 @@
 
 import time
-# import network3
-import network2
-# from network3 import sigmoid, tanh, ReLU, Network
-# from network3 import FullyConnectedLayer
-# import function_wmmse_powercontrol as wmmse
+import network3
+from network3 import sigmoid, tanh, ReLU, Network
+from network3 import FullyConnectedLayer
+
+from network3 import sigmoid, tanh, ReLU, Network
 import pickle
 
 K = 10  # Number of users
@@ -40,11 +40,11 @@ training_epochs = 10
 eta=0.1
 lmbda = 10.0
 
-net = network2.Network([K**2, 200, 200, 200, K], cost=network2.QuadraticCost)
+net = Network([
+            FullyConnectedLayer(n_in=K**2, n_out=200, activation_fn=ReLU, p_dropout=0.5),
+            FullyConnectedLayer(n_in=200, n_out=80, activation_fn=ReLU, p_dropout=0.5),
+            FullyConnectedLayer(n_in=80, n_out=80, activation_fn=ReLU, p_dropout=0.5),
+            FullyConnectedLayer(n_in=80, n_out=80, activation_fn=ReLU)],
+            mini_batch_size)
 
-net.SGD(training_data, training_epochs, mini_batch_size, eta, lmbda, test_data,
-        monitor_evaluation_cost=True,
-        monitor_evaluation_accuracy=True,
-        monitor_training_cost=True,
-        monitor_training_accuracy=True
-        )
+net.SGD(training_data, training_epochs, mini_batch_size, 0.1, test_data, test_data)
