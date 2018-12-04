@@ -20,7 +20,6 @@ import sys
 # Third-party libraries
 import numpy as np
 
-
 #### Define the quadratic and cross-entropy cost functions
 
 class QuadraticCost(object):
@@ -36,7 +35,7 @@ class QuadraticCost(object):
     @staticmethod
     def delta(z, a, y):
         """Return the error delta from the output layer."""
-        return (a-y) * sigmoid_prime(z)
+        return (a-y)
 
 
 class CrossEntropyCost(object):
@@ -123,7 +122,7 @@ class Network(object):
     def feedforward(self, a):
         """Return the output of the network if ``a`` is input."""
         for b, w in zip(self.biases, self.weights):
-            a = sigmoid(np.dot(w, a)+b)
+            a = ReLU(np.dot(w, a)+b)
         return a
 
     def SGD(self, training_data, epochs, mini_batch_size, eta,
@@ -267,8 +266,13 @@ class Network(object):
             results = [(np.argmax(self.feedforward(x)), np.argmax(y))
                        for (x, y) in data]
         else:
-            results = [(np.argmax(self.feedforward(x)), y)
+            results = [(self.feedforward(x), y)
                         for (x, y) in data]
+        (x, y) = results[0]
+        print('x=')
+        print(x)
+        print('y=')
+        print(y)
         return sum(int(np.array_equiv(x, y)) for (x, y) in results)
 
     def total_cost(self, data, lmbda, convert=False):
@@ -330,3 +334,5 @@ def sigmoid(z):
 def sigmoid_prime(z):
     """Derivative of the sigmoid function."""
     return sigmoid(z)*(1-sigmoid(z))
+def ReLU(z):
+    return np.maximum(0.0, z)

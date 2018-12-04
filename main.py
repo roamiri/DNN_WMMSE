@@ -37,17 +37,10 @@ for i in range(0, Xtest.shape[1]):
 
 mini_batch_size = 1000
 training_epochs = 10
-eta=0.01
-lmbda = 0.0
+eta=0.1
+lmbda = 10.0
 
-# net = Network([
-#     FullyConnectedLayer(n_in=K**2, n_out=200, activation_fn=ReLU, p_dropout=0.5),
-#     FullyConnectedLayer(n_in=200, n_out=200, activation_fn=ReLU, p_dropout=0.5),
-#     FullyConnectedLayer(n_in=200, n_out=200, activation_fn=ReLU, p_dropout=0.5),
-#     FullyConnectedLayer(n_in=200, n_out=K, activation_fn=ReLU, p_dropout=0.5)],
-#     mini_batch_size)
-
-net = network2.Network([K**2, 200, 80, 80, K], cost=network2.QuadraticCost)
+net = network2.Network([K**2, 200, 200, 200, K], cost=network2.QuadraticCost)
 
 net.SGD(training_data, training_epochs, mini_batch_size, eta, lmbda, test_data,
         monitor_evaluation_cost=True,
