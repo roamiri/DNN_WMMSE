@@ -42,7 +42,7 @@ for i in range(0, Xtest.shape[1]):
 
 mini_batch_size = 1000
 training_epochs = 100
-eta=0.01
+eta=0.001
 lmbda = 10.0
 
 net = network2.Network([K**2, 200, K], cost=network2.QuadraticCost)
