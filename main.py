@@ -1,7 +1,6 @@
 
 import time
-import network_original as network
-# import network2 as network
+import network
 import pickle
 from sklearn import preprocessing
 
@@ -47,9 +46,9 @@ training_epochs = 100
 eta = 3.0
 lmbda = 0.0
 
-net = network.Network([K**2, 200, K], cost=network.QuadraticCost)
+DNN = network.Network([K**2, 200, K], cost=network.QuadraticCost)
 
-net.SGD(training_data, training_epochs, mini_batch_size, eta, lmbda, test_data,
+DNN.SGD(training_data, training_epochs, mini_batch_size, eta, lmbda, test_data,
         monitor_evaluation_cost=True,
         monitor_evaluation_accuracy=True,
         monitor_training_cost=True,
