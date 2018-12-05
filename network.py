@@ -36,7 +36,8 @@ class QuadraticCost(object):
     @staticmethod
     def delta(z, a, y):
         """Return the error delta from the output layer."""
-        return (a-y) * sigmoid_prime(z)
+        # return (a-y) * sigmoid_prime(z)
+        return (a - y) * ReLU_prime(z)
 
 
 class CrossEntropyCost(object):
@@ -122,8 +123,9 @@ class Network(object):
 
     def feedforward(self, a):
         """Return the output of the network if ``a`` is input."""
-        for b, w in zip(self.biases, self.weights):
+        for b, w in zip(self.biases[:-1], self.weights[:-1]):
             a = sigmoid(np.dot(w, a)+b)
+        a = ReLU(np.dot(self.weights[-1], a) + self.biases[-1])
         return a
 
     def SGD(self, training_data, epochs, mini_batch_size, eta,
@@ -326,3 +328,9 @@ def sigmoid(z):
 def sigmoid_prime(z):
     """Derivative of the sigmoid function."""
     return sigmoid(z)*(1-sigmoid(z))
+
+def ReLU(z):
+    return np.maximum(-10.0, z)
+
+def ReLU_prime(z):
+    return (z > -10.0) * 1.0
