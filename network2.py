@@ -19,6 +19,7 @@ import sys
 
 # Third-party libraries
 import numpy as np
+from scipy.stats import truncnorm
 
 #### Define the quadratic and cross-entropy cost functions
 
@@ -33,42 +34,48 @@ class QuadraticCost(object):
         return 0.5*np.linalg.norm(a-y)**2
 
     @staticmethod
+    def delta_sigmoid(z, a, y):
+        """Return the error delta from the output layer."""
+        return (a-y) * sigmoid_prime(z)
+
+    @staticmethod
     def delta(z, a, y):
         """Return the error delta from the output layer."""
-        a[a < 0.5] = 0.0
-        a[a >= 0.5] = 1.0
-        return (a-y)
+        aa = (a >= 0.5) * 1.0
+        tt = ReLU_prime(z)
+        out = (aa-y) * tt
+        return out
 
 
-class CrossEntropyCost(object):
-
-    @staticmethod
-    def fn(a, y):
-        """Return the cost associated with an output ``a`` and desired output
-        ``y``.  Note that np.nan_to_num is used to ensure numerical
-        stability.  In particular, if both ``a`` and ``y`` have a 1.0
-        in the same slot, then the expression (1-y)*np.log(1-a)
-        returns nan.  The np.nan_to_num ensures that that is converted
-        to the correct value (0.0).
-
-        """
-        return np.sum(np.nan_to_num(-y*np.log(a)-(1-y)*np.log(1-a)))
-
-    @staticmethod
-    def delta(z, a, y):
-        """Return the error delta from the output layer.  Note that the
-        parameter ``z`` is not used by the method.  It is included in
-        the method's parameters in order to make the interface
-        consistent with the delta method for other cost classes.
-
-        """
-        return (a-y)
+# class CrossEntropyCost(object):
+#
+#     @staticmethod
+#     def fn(a, y):
+#         """Return the cost associated with an output ``a`` and desired output
+#         ``y``.  Note that np.nan_to_num is used to ensure numerical
+#         stability.  In particular, if both ``a`` and ``y`` have a 1.0
+#         in the same slot, then the expression (1-y)*np.log(1-a)
+#         returns nan.  The np.nan_to_num ensures that that is converted
+#         to the correct value (0.0).
+#
+#         """
+#         return np.sum(np.nan_to_num(-y*np.log(a)-(1-y)*np.log(1-a)))
+#
+#     @staticmethod
+#     def delta(z, a, y):
+#         """Return the error delta from the output layer.  Note that the
+#         parameter ``z`` is not used by the method.  It is included in
+#         the method's parameters in order to make the interface
+#         consistent with the delta method for other cost classes.
+#
+#         """
+#         return (a-y)
 
 
 #### Main Network class
 class Network(object):
 
-    def __init__(self, sizes, cost=CrossEntropyCost):
+    def __init__(self, sizes, cost=QuadraticCost):
         """The list ``sizes`` contains the number of neurons in the respective
         layers of the network.  For example, if the list was [2, 3, 1]
         then it would be a three-layer network, with the first layer
@@ -98,8 +105,13 @@ class Network(object):
 
         """
         self.biases = [np.random.randn(y, 1) for y in self.sizes[1:]]
+        # self.biases = [np.ones(y).reshape(y,1)  for y in self.sizes[1:]]
+        # self.weights = [truncnorm.rvs(-2.0, 2.0, size=y* x).reshape(y, x) / np.sqrt(y)
+        #                 for x, y in zip(self.sizes[:-1], self.sizes[1:])]
         self.weights = [np.random.randn(y, x)/np.sqrt(x)
                         for x, y in zip(self.sizes[:-1], self.sizes[1:])]
+        # self.weights = [np.ones([y, x])
+        #                 for x, y in zip(self.sizes[:-1], self.sizes[1:])]
 
     def large_weight_initializer(self):
         """Initialize the weights using a Gaussian distribution with mean 0
@@ -123,10 +135,24 @@ class Network(object):
 
     def feedforward(self, a):
         """Return the output of the network if ``a`` is input."""
+        for l in xrange(0, self.num_layers-2):
+            a = sigmoid(np.dot(self.weights[l], a) + self.biases[l])
+
+
+        z = np.dot(self.weights[-1], a) + self.biases[-1]
+        # print(z)
+        a = ReLU(z)
+        # print(a)
+        # for b, w in zip(self.biases, self.weights):
+
+        aa = (a >= 0.5) * 1.0
+
+        return aa
+
+    def feedforward_1(self, a):
+        """Return the output of the network if ``a`` is input."""
         for b, w in zip(self.biases, self.weights):
-            a = ReLU(np.dot(w, a)+b)
-        a[a < 0.5] = 0.0
-        a[a >= 0.5] = 1.0
+            a = sigmoid(np.dot(w, a) + b)
         return a
 
     def SGD(self, training_data, epochs, mini_batch_size, eta,
@@ -220,11 +246,23 @@ class Network(object):
         activation = x
         activations = [x] # list to store all the activations, layer by layer
         zs = [] # list to store all the z vectors, layer by layer
-        for b, w in zip(self.biases, self.weights):
-            z = np.dot(w, activation)+b
+        for l in xrange(0, self.num_layers-2):
+            z = np.dot(self.weights[l], activation) + self.biases[l]
             zs.append(z)
-            activation = ReLU(z)
+            activation = sigmoid(z)
             activations.append(activation)
+
+        z = np.dot(self.weights[-1], activation) + self.biases[-1]
+        zs.append(z)
+        activation = ReLU(z)
+        activations.append(activation)
+
+        # for b, w in zip(self.biases, self.weights):
+        #     z = np.dot(w, activation)+b
+        #     zs.append(z)
+        #     activation = ReLU(z)
+        #     activations.append(activation)
+
         # backward pass
         delta = (self.cost).delta(zs[-1], activations[-1], y)
         nabla_b[-1] = delta
@@ -237,7 +275,7 @@ class Network(object):
         # that Python can use negative indices in lists.
         for l in xrange(2, self.num_layers):
             z = zs[-l]
-            sp = 1.0
+            sp = sigmoid_prime(z)
             delta = np.dot(self.weights[-l+1].transpose(), delta) * sp
             nabla_b[-l] = delta
             nabla_w[-l] = np.dot(delta, activations[-l-1].transpose())
@@ -267,12 +305,10 @@ class Network(object):
 
         """
         if convert:
-            results = [(np.argmax(self.feedforward(x)), np.argmax(y))
-                       for (x, y) in data]
+            results = [(np.argmax(self.feedforward(x)), np.argmax(y)) for (x, y) in data]
         else:
-            results = [(self.feedforward(x), y)
-                        for (x, y) in data]
-        # (x, y) = results[0]
+            results = [(self.feedforward(x), y) for (x, y) in data]
+        # (x, y) = results[2]
         # print('x=')
         # print(x)
         # print('y=')
@@ -338,5 +374,9 @@ def sigmoid(z):
 def sigmoid_prime(z):
     """Derivative of the sigmoid function."""
     return sigmoid(z)*(1-sigmoid(z))
+
 def ReLU(z):
     return np.maximum(0.0, z)
+
+def ReLU_prime(z):
+    return (z > 0)*1.0
