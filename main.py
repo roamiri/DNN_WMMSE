@@ -42,7 +42,6 @@ test_data = []
 for i in range(0, Xtest.shape[1]):
     test_data.append((scaler.fit_transform(Xtest[:, i].reshape(100, 1)), Ytest[:, i].reshape(10, 1)))
 
-
 mini_batch_size = 10
 training_epochs = 100
 eta = 3.0
