@@ -42,15 +42,18 @@ for i in range(0, Xtest.shape[1]):
     test_data.append((scaler.fit_transform(Xtest[:, i].reshape(100, 1)), Ytest[:, i].reshape(10, 1)))
 
 mini_batch_size = 10
-training_epochs = 100
+training_epochs = 10
 eta = 3.0
 lmbda = 0.0
 
-DNN = network.Network([K**2, 200, K], cost=network.QuadraticCost)
+DNN = network.Network([K**2, 30, K], cost=network.QuadraticCost)
 
-DNN.SGD(training_data, training_epochs, mini_batch_size, eta, lmbda, test_data,
-        monitor_evaluation_cost=True,
-        monitor_evaluation_accuracy=True,
-        monitor_training_cost=True,
-        monitor_training_accuracy=True
+# evaluation_cost, evaluation_accuracy, training_cost, training_accuracy = []
+
+(evaluation_cost, evaluation_accuracy, training_cost, training_accuracy) = DNN.SGD(training_data, training_epochs, mini_batch_size, eta, lmbda, test_data,
+        monitor_evaluation_cost=False,
+        monitor_evaluation_accuracy=False,
+        monitor_training_cost=False,
+        monitor_training_accuracy=False
         )
+

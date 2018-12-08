@@ -36,8 +36,8 @@ class QuadraticCost(object):
     @staticmethod
     def delta(z, a, y):
         """Return the error delta from the output layer."""
-        # return (a-y) * sigmoid_prime(z)
-        return (a - y) * ReLU_prime(z)
+        return (a-y) * sigmoid_prime(z)
+        # return (a - y) * ReLU_prime(z)
 
 
 class CrossEntropyCost(object):
@@ -123,9 +123,9 @@ class Network(object):
 
     def feedforward(self, a):
         """Return the output of the network if ``a`` is input."""
-        for b, w in zip(self.biases[:-1], self.weights[:-1]):
+        for b, w in zip(self.biases, self.weights):
             a = sigmoid(np.dot(w, a)+b)
-        a = ReLU(np.dot(self.weights[-1], a) + self.biases[-1])
+        # a = ReLU_shifted(np.dot(self.weights[-1], a) + self.biases[-1])
         return a
 
     def SGD(self, training_data, epochs, mini_batch_size, eta,
@@ -160,34 +160,30 @@ class Network(object):
         training_cost, training_accuracy = [], []
         for j in xrange(epochs):
             random.shuffle(training_data)
-            mini_batches = [
-                training_data[k:k+mini_batch_size]
-                for k in xrange(0, n, mini_batch_size)]
+            mini_batches = [training_data[k:k+mini_batch_size] for k in xrange(0, n, mini_batch_size)]
             for mini_batch in mini_batches:
-                self.update_mini_batch(
-                    mini_batch, eta, lmbda, len(training_data))
+                self.update_mini_batch(mini_batch, eta, lmbda, len(training_data))
             print "Epoch %s training complete" % j
+
+            cost = self.total_cost(training_data, lmbda)
+            training_cost.append(cost)
+            accuracy = self.accuracy(training_data, convert=False)
+            training_accuracy.append(accuracy)
+            cost = self.total_cost(evaluation_data, lmbda, convert=False)
+            evaluation_cost.append(cost)
+            accuracy = self.accuracy(evaluation_data)
+            evaluation_accuracy.append(accuracy)
+
             if monitor_training_cost:
-                cost = self.total_cost(training_data, lmbda)
-                training_cost.append(cost)
                 print "Cost on training data: {}".format(cost)
             if monitor_training_accuracy:
-                accuracy = self.accuracy(training_data, convert=False)
-                training_accuracy.append(accuracy)
-                print "Accuracy on training data: {} / {}".format(
-                    accuracy, n)
+                print "Accuracy on training data: {} / {}".format(accuracy, n)
             if monitor_evaluation_cost:
-                cost = self.total_cost(evaluation_data, lmbda, convert=False)
-                evaluation_cost.append(cost)
                 print "Cost on evaluation data: {}".format(cost)
             if monitor_evaluation_accuracy:
-                accuracy = self.accuracy(evaluation_data)
-                evaluation_accuracy.append(accuracy)
-                print "Accuracy on evaluation data: {} / {}".format(
-                    self.accuracy(evaluation_data), n_data)
-            print
-        return evaluation_cost, evaluation_accuracy, \
-            training_cost, training_accuracy
+                print "Accuracy on evaluation data: {} / {} \n".format(self.accuracy(evaluation_data), n_data)
+
+        return evaluation_cost, evaluation_accuracy, training_cost, training_accuracy
 
     def update_mini_batch(self, mini_batch, eta, lmbda, n):
         """Update the network's weights and biases by applying gradient
@@ -329,8 +325,14 @@ def sigmoid_prime(z):
     """Derivative of the sigmoid function."""
     return sigmoid(z)*(1-sigmoid(z))
 
+def ReLU_shifted(z, shift = -1.0):
+    return np.maximum(shift, z)
+
 def ReLU(z):
-    return np.maximum(-10.0, z)
+    return np.maximum(0.0, z)
 
 def ReLU_prime(z):
-    return (z > -10.0) * 1.0
+    return (z >= 0.0)*1.0
+
+def ReLU_shifted_prime(z, shift=-1.0):
+    return (z > shift) * 1.0
