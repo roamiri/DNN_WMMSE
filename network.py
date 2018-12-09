@@ -262,8 +262,9 @@ class Network(object):
 
         """
         results = [(self.feedforward(x), y) for (x, y) in data]
-
-        return sum(int(np.array_equiv((x>=0.5)*1.0, y)) for (x, y) in results)
+        acc = sum(int(np.array_equiv((x>=0.5)*1.0, y)) for (x, y) in results)
+        acc = acc*100.0/len(results)
+        return acc
 
     def total_cost(self, data, lmbda, convert=False):
         """Return the total cost for the data set ``data``.  The flag
