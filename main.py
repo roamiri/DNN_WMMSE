@@ -82,4 +82,3 @@ if plotOutput:
     plt.xlabel('Epochs')
     plt.grid
     plt.show()
-    
