@@ -29,7 +29,7 @@ for i in range(0, Ytrain.shape[1]):
     Ytrain[:, i][Ytrain[:, i] >= 0.5] = 1.0
 
 training_data = []
-for i in range(0, Xtrain.shape[1]):
+for i in range(0, Xtrain.shape[1]/5):
     training_data.append((scaler.fit_transform(Xtrain[:, i].reshape(100, 1)), Ytrain[:, i].reshape(10, 1)))
 
 
@@ -38,15 +38,16 @@ for i in range(0, Ytest.shape[1]):
     Ytest[:, i][Ytest[:, i] >= 0.5] = 1.0
 
 test_data = []
-for i in range(0, Xtest.shape[1]):
+for i in range(0, Xtest.shape[1]/5):
     test_data.append((scaler.fit_transform(Xtest[:, i].reshape(100, 1)), Ytest[:, i].reshape(10, 1)))
 
+data_size = len(training_data)
 mini_batch_size = 10
-training_epochs = 100
-eta = 3.0
+training_epochs = 90
+eta = 5.0
 lmbda = 0.0
 
-DNN = network.Network([K**2, 200, 200, K], cost=network.QuadraticCost)
+DNN = network.Network([K**2, 200, 100, 50, K], cost=network.QuadraticCost)
 
 # evaluation_cost, evaluation_accuracy, training_cost, training_accuracy = []
 
@@ -59,7 +60,7 @@ DNN = network.Network([K**2, 200, 200, K], cost=network.QuadraticCost)
 
 save = True
 if save:
-    with open('./data/three_{0}_{1}_{2}_{3}.pkl'.format('200,200', eta, lmbda, mini_batch_size), 'wb') as f:
+    with open('./data/three_{0}_{1}_{2}_{3}_{4}.pkl'.format('200', eta, lmbda, mini_batch_size, data_size), 'wb') as f:
         pickle.dump(training_accuracy, f)
         pickle.dump(training_cost, f)
         pickle.dump(evaluation_accuracy, f)
@@ -67,7 +68,7 @@ if save:
 
 load = False
 if load:
-    with open('./data/three_{0}_{1}_{2}_{3}.pkl'.format(200, eta, lmbda, mini_batch_size), 'rb') as f:
+    with open('./data/three_{0}_{1}_{2}_{3}_{4}.pkl'.format(200, eta, lmbda, mini_batch_size, data_size), 'rb') as f:
         training_accuracy = pickle.load(f)
         training_cost = pickle.load(f)
         evaluation_accuracy = pickle.load(f)
@@ -78,7 +79,15 @@ import matplotlib.pyplot as plt
 plotOutput = True
 if plotOutput:
     plt.plot(training_accuracy)
+    plt.plot(evaluation_accuracy)
     plt.ylabel('Training accuracy')
     plt.xlabel('Epochs')
-    plt.grid
+    plt.grid(True, color='k', linestyle=':', linewidth=0.3)
+    axes = plt.gca()
+    ymax = max(training_accuracy)
+    xpos = training_accuracy.index(ymax)
+    axes.annotate('max={}%'.format(ymax), xy=(xpos, ymax), xytext=(xpos-10, ymax - 10),arrowprops=dict(facecolor='black', shrink=0.05))
+    # axes.set_xlim([xmin, xmax])
+    axes.set_ylim([0.0, 100.0])
+    axes.legend(['Training data', 'Evaluation data'], loc='upper left')
     plt.show()
