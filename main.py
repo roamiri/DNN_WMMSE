@@ -3,6 +3,7 @@ import time
 import network
 import pickle
 from sklearn import preprocessing
+import matplotlib.pyplot as plt
 
 K = 10  # Number of users
 
@@ -59,14 +60,14 @@ for i in range(0, Xtest.shape[1]/5):
 data_size = len(training_data)
 mini_batch_size = 10
 training_epochs = 90
-eta = 1.0
+eta = 5.0
 lmbda = 0.0
 
-DNN = network.Network([K**2, 200, 100, K], cost=network.CrossEntropyCost)
+DNN = network.Network([K**2, 200, 100, K], cost=network.QuadraticCost)
 
 # evaluation_cost, evaluation_accuracy, training_cost, training_accuracy = []
-T = False
-(evaluation_cost, evaluation_accuracy, training_cost, training_accuracy) = DNN.SGD(training_data, training_epochs, mini_batch_size, eta, lmbda, test_data,
+T = True
+(evaluation_cost, evaluation_accuracy, training_cost, training_accuracy) = DNN.SGD(training_data, training_epochs, mini_batch_size, eta, lmbda, eval_data,
         monitor_evaluation_cost=T,
         monitor_evaluation_accuracy=T,
         monitor_training_cost=T,
@@ -90,9 +91,7 @@ if load:
         evaluation_accuracy = pickle.load(f)
         evaluation_cost = pickle.load(f)
 
-import matplotlib.pyplot as plt
-
-plotOutput = True
+plotOutput = False
 if plotOutput:
     plt.plot(training_accuracy)
     plt.plot(evaluation_accuracy)

@@ -177,11 +177,11 @@ class Network(object):
             if monitor_training_cost:
                 print "Cost on training data: {}".format(cost)
             if monitor_training_accuracy:
-                print "Accuracy on training data: {} / {}".format(accuracy, n)
+                print "Accuracy on training data: {} %".format(accuracy)
             if monitor_evaluation_cost:
                 print "Cost on evaluation data: {}".format(cost)
             if monitor_evaluation_accuracy:
-                print "Accuracy on evaluation data: {} / {} \n".format(self.accuracy(evaluation_data), n_data)
+                print "Accuracy on evaluation data: {} % \n".format(self.accuracy(evaluation_data))
 
         return evaluation_cost, evaluation_accuracy, training_cost, training_accuracy
 
